@@ -1,3 +1,5 @@
+import { IPolicyStatement } from "@shared/policy";
+
 export interface IPolicy {
   id: string;
   type: string;
@@ -8,14 +10,6 @@ export interface IPolicy {
 
   // front end use only
   resourceName?: string;
-}
-
-export interface IPolicyStatement {
-  id: string;
-  resourceType: string;
-  effect: string;
-  actions: string[];
-  resources: string[];
 }
 
 export class PolicyFilter {
@@ -100,4 +94,9 @@ export interface IPagedPolicyMember {
 
 export function policyRn(policy: IPolicy) {
   return `policy/${policy.name}`;
+}
+
+export enum PolicyTypeEnum {
+  SysManaged = 'SysManaged',
+  CustomerManaged = 'CustomerManaged'
 }

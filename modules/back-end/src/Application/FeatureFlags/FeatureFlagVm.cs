@@ -7,6 +7,8 @@ public class FeatureFlagVm
     public string Id { get; set; }
 
     public string Name { get; set; }
+    
+    public string Description { get; set; }
 
     public string Key { get; set; }
 
@@ -18,6 +20,9 @@ public class FeatureFlagVm
     
     public DateTime UpdatedAt { get; set; }
 
+    /// <summary>
+    /// The possible variation value(s) that would be returned. 
+    /// </summary>
     public Serves Serves { get; set; }
 
     public ICollection<string> Tags { get; set; }

@@ -1,9 +1,7 @@
-using System.Text;
-using Domain.Identity;
 using Domain.Messages;
 using Domain.Users;
+using Infrastructure.AccessTokens;
 using Infrastructure.AuditLogs;
-using Infrastructure.HostedServices;
 using Infrastructure.DataSync;
 using Infrastructure.EndUsers;
 using Infrastructure.Environments;
@@ -13,7 +11,7 @@ using Infrastructure.FeatureFlags;
 using Infrastructure.Groups;
 using Infrastructure.Identity;
 using Infrastructure.Members;
-using Infrastructure.Messages;
+using Infrastructure.Kafka;
 using Infrastructure.Organizations;
 using Infrastructure.Policies;
 using Infrastructure.Projects;
@@ -24,7 +22,6 @@ using Infrastructure.Triggers;
 using Infrastructure.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 // ReSharper disable CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -48,28 +45,8 @@ public static class ConfigureServices
         services.AddScoped<IUserStore, MongoDbUserStore>();
         services.AddScoped<IIdentityService, IdentityService>();
 
-        // authentication
-        var jwtOption = configuration.GetSection(JwtOptions.Jwt);
-        services.Configure<JwtOptions>(jwtOption);
-        services
-            .AddAuthentication()
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = jwtOption["Issuer"],
-
-                    ValidateAudience = true,
-                    ValidAudience = jwtOption["Audience"],
-
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOption["Key"]))
-                };
-            });
-
         // hosted services
-        services.AddHostedService<KafkaConsumerService>();
+        services.AddHostedService<KafkaMessageConsumer>();
 
         // typed http clients
         services.AddHttpClient<IOlapService, OlapService>(httpClient =>
@@ -95,6 +72,7 @@ public static class ConfigureServices
         services.AddTransient<IExperimentMetricService, ExperimentMetricService>();
         services.AddTransient<IAuditLogService, AuditLogService>();
         services.AddSingleton<IEvaluator, Evaluator>();
+        services.AddTransient<IAccessTokenService, AccessTokenService>();
 
         return services;
     }

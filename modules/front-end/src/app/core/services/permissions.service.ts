@@ -1,23 +1,25 @@
-import {Injectable} from "@angular/core";
-import {lastValueFrom} from "rxjs";
-import {IPolicy, IPolicyStatement} from "@features/safe/iam/types/policy";
-import {MemberService} from "@services/member.service";
-import {EffectEnum, ResourceTypeEnum} from "@features/safe/iam/components/policy-editor/types";
+import { Injectable } from "@angular/core";
+import { lastValueFrom } from "rxjs";
+import { IPolicy } from "@features/safe/iam/types/policy";
+import { MemberService } from "@services/member.service";
+import { EffectEnum, IamPolicyAction, IPolicyStatement, ResourceTypeEnum } from "@shared/policy";
 
 @Injectable({
   providedIn: 'root'
 })
 export class PermissionsService {
-  private permissions: IPolicyStatement[];
+  userPolicies: IPolicy[];
+  userPermissions: IPolicyStatement[];
 
-  genericDenyMessage: string = $localize `:@@permissions.need-permissions-to-operate:You don't have permissions to take this action, please contact the admin to grant you the necessary permissions`;
+  genericDenyMessage: string = $localize`:@@permissions.need-permissions-to-operate:You don't have permissions to take this action, please contact the admin to grant you the necessary permissions`;
 
   constructor(private memberSvc: MemberService) {
   }
 
   async fetchPolicies(memberId: string) {
     const policies = await lastValueFrom<IPolicy[]>(this.memberSvc.getAllPolicies(memberId));
-    this.permissions = policies.flatMap(p => p.statements);
+    this.userPolicies = [...policies];
+    this.userPermissions = policies.flatMap(p => p.statements);
   }
 
   // use "*" (star) as a wildcard for example:
@@ -26,7 +28,7 @@ export class PermissionsService {
   // "*b" => everything that ends with "b"
   // "*a*" => everything that has an "a" in it
   // "*a*b*"=> everything that has an "a" in it, followed by anything, followed by a "b", followed by anything
-  private matchRule(str, rule) {
+  private matchRule(str: string, rule: string): boolean {
     var escapeRegex = (s) => s.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
     return new RegExp("^" + rule.split("*").map(escapeRegex).join(".*") + "$").test(str);
   }
@@ -61,39 +63,20 @@ export class PermissionsService {
   }
 
   // if return undefined, that means zero permission is defined on that resource
-  canTakeAction(rn: string, action: string): boolean | undefined | any {
-    const [resourceType, _] = rn.split('/');
+  isGranted(rn: string, action: IamPolicyAction): boolean | undefined | any {
+    const matchedPermissions = this.userPermissions.filter(permission => {
+      if (permission.resourceType === ResourceTypeEnum.All) {
+        return true;
+      }
 
-    const statements = this.permissions.filter(s => {
-        if (s.resourceType === ResourceTypeEnum.All) {
-          return s.effect === EffectEnum.Allow;
-        }
-
-        if (s.resourceType === ResourceTypeEnum.General) {
-          return s.resources.map(r => r.split('/')[0]).includes(resourceType) && s.actions.includes(action);
-        }
-
-        const matchingResource = s.resources.find(rsc => {
-          // check exact match
-          if (this.matchRule(rn, rsc)){
-            return true;
-          }
-
-          // check ancestors matches following bottom up order
-          const rnParts = rn.split(':');
-          return [...rnParts].reverse().some((part, idx) => {
-            rnParts.pop();
-            return this.matchRule(rnParts.join(':'), rsc);
-          });
-        });
-
-        return matchingResource !== undefined && s.actions.includes(action)
+      return permission.resources.some(rsc => this.matchRule(rn, rsc)) &&
+        permission.actions.some(act => act === '*' || act === action.name);
     });
 
-    if (statements.find(s => s.effect === EffectEnum.Deny) !== undefined) {
+    if (matchedPermissions.length === 0) {
       return false;
     }
 
-    return statements.find(s => s.effect !== EffectEnum.Deny && (s.actions.find(act => act === '*') || s.actions.includes(action)));
+    return matchedPermissions.every(s => s.effect === EffectEnum.Allow);
   }
 }

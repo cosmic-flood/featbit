@@ -5,8 +5,8 @@ import { getAuth } from '@utils/index';
 import { IOrganization } from '@shared/types';
 import { OrganizationService } from '@services/organization.service';
 import { getCurrentOrganization } from "@utils/project-env";
-import {PermissionsService} from "@services/permissions.service";
-import {generalResourceRNPattern, permissionActions} from "@shared/permissions";
+import { PermissionsService } from "@services/permissions.service";
+import { generalResourceRNPattern, permissionActions } from "@shared/policy";
 import { MessageQueueService } from '@core/services/message-queue.service';
 
 @Component({
@@ -37,7 +37,7 @@ export class OrganizationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.canUpdateOrgName = this.permissionsService.canTakeAction(generalResourceRNPattern.account, permissionActions.UpdateOrgName);
+    this.canUpdateOrgName = this.permissionsService.isGranted(generalResourceRNPattern.account, permissionActions.UpdateOrgName);
     this.allOrganizations = this.organizationService.organizations;
 
     const currentOrganizationId = getCurrentOrganization().id;
@@ -81,23 +81,23 @@ export class OrganizationComponent implements OnInit {
       }
       return;
     }
-    const { name } = this.validateOrgForm.value;
-    const { id, initialized } = this.currentOrganization;
+    const {name} = this.validateOrgForm.value;
+    const {id, initialized} = this.currentOrganization;
 
     this.isLoading = true;
-    this.organizationService.updateOrganization({ name, id })
+    this.organizationService.update({ name })
       .pipe()
-      .subscribe(
-        () => {
+      .subscribe({
+        next: () => {
           this.isLoading = false;
-          this.message.success($localize `:@@org.org.orgNameUpdateSuccess:Organization name updated!`);
-          this.organizationService.setOrganization({ id, initialized, name });
+          this.message.success($localize`:@@org.org.orgNameUpdateSuccess:Organization name updated!`);
+          this.organizationService.setOrganization({id, initialized, name});
           this.messageQueueService.emit(this.messageQueueService.topics.CURRENT_ORG_PROJECT_ENV_CHANGED);
         },
-        () => {
+        error: () => {
           this.isLoading = false;
         }
-      );
+      });
   }
 
 }

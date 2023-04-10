@@ -4,7 +4,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { MessageQueueService } from '@services/message-queue.service';
 import { IProjectEnv } from '@shared/types';
 import { CURRENT_PROJECT } from '@utils/localstorage-keys';
-import { getPathPrefix, isNumeric, tryParseJSONObject, uuidv4 } from "@utils/index";
+import { getPathPrefix, isNumeric, tryParseJSONObject, uuidv4, copyToClipboard } from "@utils/index";
 import { editor } from "monaco-editor";
 import { FeatureFlagService } from "@services/feature-flag.service";
 import {
@@ -38,21 +38,22 @@ export class SettingComponent {
   }
 
   copyText(text: string) {
-    navigator.clipboard.writeText(text).then(
+    copyToClipboard(text).then(
       () => this.message.success($localize `:@@common.copy-success:Copied`)
     );
   }
 
-  public lastSavedVariations: IVariation[];
+  lastSavedVariations: IVariation[];
   setLastSavedVariations() {
     this.lastSavedVariations = JSON.parse(JSON.stringify(this.featureFlag.variations));
   }
 
-  public featureFlag: FeatureFlag = {} as FeatureFlag;
-  public isLoading = true;
-  public isEditingTitle = false;
-  public isEditingVariations = false;
-  public key: string = null;
+  featureFlag: FeatureFlag = {} as FeatureFlag;
+  isLoading = true;
+  isEditingTitle = false;
+  isEditingDescription = false;
+  isEditingVariations = false;
+  key: string = null;
   currentProjectEnv: IProjectEnv = null;
 
   allTags: string[] = [];
@@ -149,7 +150,11 @@ export class SettingComponent {
     }, () => this.isLoading = false)
   }
 
-  public onChangeStatus() {
+  onSaveDescription() {
+    this.onSaveSettings();
+  }
+
+  onChangeStatus() {
     this.featureFlag.isEnabled = !this.featureFlag.isEnabled;
     this.onSaveSettings(() => this.messageQueueService.emit(this.messageQueueService.topics.FLAG_SETTING_CHANGED(this.key)));
   }
@@ -160,6 +165,10 @@ export class SettingComponent {
 
   toggleTitleEditState(): void {
     this.isEditingTitle = !this.isEditingTitle;
+  }
+
+  toggleDescriptionEditState(): void {
+    this.isEditingDescription = !this.isEditingDescription;
   }
 
   toggleVariationEditState(resetVariations: boolean = false): void {
@@ -177,9 +186,9 @@ export class SettingComponent {
     }
     this.toggleVariationEditState();
 
-    const { id, variationType, variations } = this.featureFlag;
+    const { key, variationType, variations } = this.featureFlag;
     const payload: IVariationsPayload = {
-      id,
+      key,
       variationType: variationType || VariationTypeEnum.string,
       variations: variations.filter(v => !v.isInvalid)
     };
@@ -306,10 +315,11 @@ export class SettingComponent {
   }
 
   onSaveSettings(cb?: Function) {
-    const { id, name, isEnabled, variationType, disabledVariationId, variations } = this.featureFlag;
+    const { key, name, description, isEnabled, variationType, disabledVariationId, variations } = this.featureFlag;
     const payload: ISettingPayload = {
-      id,
+      key,
       name,
+      description,
       isEnabled,
       variationType: variationType || VariationTypeEnum.string,
       disabledVariationId,
@@ -321,6 +331,7 @@ export class SettingComponent {
         this.featureFlagService.setCurrentFeatureFlag(this.featureFlag);
         this.message.success($localize `:@@common.operation-success:Operation succeeded`);
         this.isEditingTitle = false;
+        this.isEditingDescription = false;
         cb && cb();
       },
       error: err => this.message.error(err.error)
@@ -328,7 +339,7 @@ export class SettingComponent {
   }
 
   restoreFlag() {
-    this.featureFlagService.restore(this.featureFlag.id).subscribe(_ => {
+    this.featureFlagService.restore(this.featureFlag.key).subscribe(_ => {
       this.featureFlag.isArchived = false;
       this.message.success($localize `:@@common.operation-success:Operation succeeded`);
       this.messageQueueService.emit(this.messageQueueService.topics.FLAG_SETTING_CHANGED(this.key));
@@ -336,7 +347,7 @@ export class SettingComponent {
   }
 
   deleteFlag() {
-    this.featureFlagService.delete(this.featureFlag.id).subscribe(success => {
+    this.featureFlagService.delete(this.featureFlag.key).subscribe(success => {
       if (success) {
         this.message.success($localize `:@@common.operation-success:Operation succeeded`);
         this.router.navigateByUrl('/feature-flags');

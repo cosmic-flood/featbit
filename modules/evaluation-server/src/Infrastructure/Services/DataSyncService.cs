@@ -11,12 +11,12 @@ namespace Infrastructure.Services;
 
 public class DataSyncService : IDataSyncService
 {
-    private readonly RedisService _redisService;
+    private readonly ICacheService _cacheService;
     private readonly EvaluationService _evaluationService;
 
-    public DataSyncService(RedisService redisService, EvaluationService evaluationService)
+    public DataSyncService(ICacheService cacheService, EvaluationService evaluationService)
     {
-        _redisService = redisService;
+        _cacheService = cacheService;
         _evaluationService = evaluationService;
     }
 
@@ -39,6 +39,47 @@ public class DataSyncService : IDataSyncService
         };
 
         return payload;
+    }
+
+    public async Task<ClientSdkPayload> GetClientSdkPayloadAsync(Guid envId, EndUser user, long timestamp)
+    {
+        var eventType = timestamp == 0 ? DataSyncEventTypes.Full : DataSyncEventTypes.Patch;
+        var flagsBytes = await _cacheService.GetFlagsAsync(envId, timestamp);
+
+        var clientSdkFlags = new List<ClientSdkFlag>();
+        foreach (var flagBytes in flagsBytes)
+        {
+            using var document = JsonDocument.Parse(flagBytes);
+            var flag = document.RootElement;
+
+            clientSdkFlags.Add(await GetClientSdkFlagAsync(flag, user));
+        }
+
+        return new ClientSdkPayload(eventType, user.KeyId, clientSdkFlags);
+    }
+
+    public async Task<ServerSdkPayload> GetServerSdkPayloadAsync(Guid envId, long timestamp)
+    {
+        var eventType = timestamp == 0 ? DataSyncEventTypes.Full : DataSyncEventTypes.Patch;
+        var featureFlags = new List<JsonObject>();
+        var segments = new List<JsonObject>();
+
+        var flagsBytes = await _cacheService.GetFlagsAsync(envId, timestamp);
+        foreach (var flag in flagsBytes)
+        {
+            var jsonObject = JsonNode.Parse(flag)!.AsObject();
+            jsonObject.Remove("");
+            featureFlags.Add(jsonObject);
+        }
+
+        var segmentsBytes = await _cacheService.GetSegmentsAsync(envId, timestamp);
+        foreach (var segment in segmentsBytes)
+        {
+            var jsonObject = JsonNode.Parse(segment)!.AsObject();
+            segments.Add(jsonObject);
+        }
+
+        return new ServerSdkPayload(eventType, featureFlags, segments);
     }
 
     public async Task<object> GetFlagChangePayloadAsync(Connection connection, JsonElement flag)
@@ -97,7 +138,7 @@ public class DataSyncService : IDataSyncService
     {
         var clientSdkFlags = new List<ClientSdkFlag>();
 
-        var flags = await _redisService.GetFlagsAsync(affectedFlagIds);
+        var flags = await _cacheService.GetFlagsAsync(affectedFlagIds);
         foreach (var flag in flags)
         {
             using var document = JsonDocument.Parse(flag);
@@ -116,23 +157,6 @@ public class DataSyncService : IDataSyncService
         var userVariation = await _evaluationService.EvaluateAsync(scope);
 
         return new ClientSdkFlag(flag, userVariation, variations);
-    }
-
-    private async Task<ClientSdkPayload> GetClientSdkPayloadAsync(Guid envId, EndUser user, long timestamp)
-    {
-        var eventType = timestamp == 0 ? DataSyncEventTypes.Full : DataSyncEventTypes.Patch;
-        var flagsBytes = await _redisService.GetFlagsAsync(envId, timestamp);
-
-        var clientSdkFlags = new List<ClientSdkFlag>();
-        foreach (var flagBytes in flagsBytes)
-        {
-            using var document = JsonDocument.Parse(flagBytes);
-            var flag = document.RootElement;
-
-            clientSdkFlags.Add(await GetClientSdkFlagAsync(flag, user));
-        }
-
-        return new ClientSdkPayload(eventType, user.KeyId, clientSdkFlags);
     }
 
     #endregion
@@ -155,29 +179,6 @@ public class DataSyncService : IDataSyncService
             Array.Empty<JsonObject>(),
             new[] { JsonObject.Create(segment)! }
         );
-    }
-
-    private async Task<ServerSdkPayload> GetServerSdkPayloadAsync(Guid envId, long timestamp)
-    {
-        var eventType = timestamp == 0 ? DataSyncEventTypes.Full : DataSyncEventTypes.Patch;
-        var featureFlags = new List<JsonObject>();
-        var segments = new List<JsonObject>();
-
-        var flagsBytes = await _redisService.GetFlagsAsync(envId, timestamp);
-        foreach (var flag in flagsBytes)
-        {
-            var jsonObject = JsonNode.Parse(flag)!.AsObject();
-            featureFlags.Add(jsonObject);
-        }
-
-        var segmentsBytes = await _redisService.GetSegmentsAsync(envId, timestamp);
-        foreach (var segment in segmentsBytes)
-        {
-            var jsonObject = JsonNode.Parse(segment)!.AsObject();
-            segments.Add(jsonObject);
-        }
-
-        return new ServerSdkPayload(eventType, featureFlags, segments);
     }
 
     #endregion

@@ -1,7 +1,10 @@
+using Api.Controllers;
+
 namespace Application.IntegrationTests.Basics;
 
+[Collection(nameof(TestApp))]
 [UsesVerify]
-public class BasicControllerTests : IClassFixture<TestApp>
+public class BasicControllerTests
 {
     private readonly TestApp _app;
 
@@ -14,6 +17,14 @@ public class BasicControllerTests : IClassFixture<TestApp>
     public async Task NeedAuthentication()
     {
         var response = await _app.GetAsync("api/v1/basic/authorized", authenticated: false);
+
+        await Verify(response);
+    }
+
+    [Fact]
+    public async Task AllowAnonymous()
+    {
+        var response = await _app.GetAsync("api/v1/basic/allow-anonymous", authenticated: false);
 
         await Verify(response);
     }
@@ -39,6 +50,14 @@ public class BasicControllerTests : IClassFixture<TestApp>
     public async Task HandleException()
     {
         var response = await _app.GetAsync("api/v1/basic/exception");
+
+        await Verify(response);
+    }
+
+    [Fact]
+    public async Task ModelBinding()
+    {
+        var response = await _app.PostAsync("api/v2/basic/bar", new Bar("1", "bar"));
 
         await Verify(response);
     }

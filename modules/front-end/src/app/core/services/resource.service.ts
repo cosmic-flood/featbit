@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { getCurrentOrganization } from "@utils/project-env";
 import { environment } from "src/environments/environment";
-import { Resource, ResourceTypeEnum } from "@features/safe/iam/components/policy-editor/types";
+import { Resource, ResourceTypeEnum } from "@shared/policy";
 import { Observable } from "rxjs";
 import { Injectable } from "@angular/core";
 
@@ -12,8 +12,7 @@ export class ResourceService {
   constructor(private http: HttpClient) { }
 
   get baseUrl() {
-    const organizationId = getCurrentOrganization().id;
-    return `${environment.url}/api/v1/organizations/${organizationId}/resources`;
+    return `${environment.url}/api/v1/resources`;
   }
 
   getAll(type: ResourceTypeEnum, name: string): Observable<Resource[]> {

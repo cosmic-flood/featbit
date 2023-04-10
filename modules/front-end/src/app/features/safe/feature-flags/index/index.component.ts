@@ -18,6 +18,7 @@ import { NzNotificationService } from "ng-zorro-antd/notification";
 import { FeatureFlagService } from "@services/feature-flag.service";
 import { IFeatureFlag } from "@features/safe/feature-flags/types/details";
 import { NzModalService } from "ng-zorro-antd/modal";
+import { copyToClipboard } from '@utils/index';
 
 @Component({
   selector: 'index',
@@ -39,7 +40,8 @@ export class IndexComponent implements OnInit {
   ) {
     this.featureFlagForm = this.fb.group({
       name: ['', Validators.required],
-      key: ['', Validators.required, this.flagKeyAsyncValidator]
+      key: ['', Validators.required, this.flagKeyAsyncValidator],
+      description:['',Validators.maxLength(512)]
     });
   }
 
@@ -81,7 +83,7 @@ export class IndexComponent implements OnInit {
     const curProjectId = currentProjectEnv.projectId;
     const curEnvId = currentProjectEnv.envId;
 
-    this.projectService.getProject(curAccountId, curProjectId)
+    this.projectService.get(curProjectId)
       .pipe(map(project => project.environments))
       .subscribe(envs => {
         this.envs = envs.filter(x => x.id !== curEnvId);
@@ -271,7 +273,7 @@ export class IndexComponent implements OnInit {
 
   nameChange(name: string) {
     let keyControl = this.featureFlagForm.get('key')!;
-    keyControl.setValue(slugify(name));
+    keyControl.setValue(slugify(name ?? ''));
     keyControl.markAsDirty();
   }
 
@@ -306,7 +308,7 @@ export class IndexComponent implements OnInit {
         `<b>${data.name}</b>` + $localize `:@@ff.idx.changed-to-on:is changed to ON`;
     }
 
-    this.featureFlagService.toggleStatus(data.id)
+    this.featureFlagService.toggleStatus(data.key)
       .subscribe(_ => {
         this.msg.success(msg);
         data.isEnabled = !data.isEnabled;
@@ -329,7 +331,7 @@ export class IndexComponent implements OnInit {
       nzCentered: true,
       nzClassName: 'information-modal-dialog',
       nzOnOk: () => {
-        this.featureFlagService.archive(flag.id).subscribe({
+        this.featureFlagService.archive(flag.key).subscribe({
             next: () => {
               this.msg.success($localize`:@@common.operation-success:Operation succeeded`);
               this.onSearch();
@@ -342,7 +344,7 @@ export class IndexComponent implements OnInit {
   }
 
   restore(flag: IFeatureFlag) {
-    this.featureFlagService.restore(flag.id).subscribe({
+    this.featureFlagService.restore(flag.key).subscribe({
       next: () => {
         this.msg.success($localize`:@@common.operation-success:Operation succeeded`);
         this.onSearch();
@@ -352,7 +354,7 @@ export class IndexComponent implements OnInit {
   }
 
   delete(flag: IFeatureFlag) {
-    this.featureFlagService.delete(flag.id).subscribe({
+    this.featureFlagService.delete(flag.key).subscribe({
       next: () => {
         this.msg.success($localize`:@@common.operation-success:Operation succeeded`);
         this.onSearch();
@@ -367,7 +369,7 @@ export class IndexComponent implements OnInit {
   }
 
   copyText(event, text: string) {
-    navigator.clipboard.writeText(text).then(
+    copyToClipboard(text).then(
       () => this.msg.success($localize `:@@common.copy-success:Copied`)
     );
   }
