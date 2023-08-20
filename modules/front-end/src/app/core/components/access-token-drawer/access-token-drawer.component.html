@@ -4,16 +4,15 @@
   [nzVisible]="visible"
   nzPlacement="right"
   [nzTitle]="title"
-  [nzWidth]="700"
-  (nzOnClose)="onClose()"
-  [nzFooter]="footer">
+  [nzWidth]="500"
+  (nzOnClose)="onClose()">
   <ng-container *nzDrawerContent>
     <form nz-form [formGroup]="form" (ngSubmit)="doSubmit()" nzLayout="vertical">
       <!-- name -->
       <nz-form-item>
         <nz-form-label nzRequired i18n="@@common.name">Name</nz-form-label>
         <nz-form-control nzHasFeedback nzValidatingTip="Validating..." i18n-nzValidatingTip="@@common.validating" [nzErrorTip]="errorTpl">
-          <input type="text" nz-input formControlName="name" placeholder="Name" i18n-placeholder="@@common.name"/>
+          <input nz-input formControlName="name" placeholder="Name" i18n-placeholder="@@common.name"/>
         </nz-form-control>
         <ng-template #errorTpl let-control>
           <ng-container *ngIf="control.hasError('required')" i18n="@@integrations.access-token.access-token-drawer.name-cannot-be-empty">Access token name cannot be empty</ng-container>
@@ -26,7 +25,6 @@
         <nz-form-label nzRequired i18n="@@common.type">Type</nz-form-label>
         <nz-form-control>
           <nz-select
-            (ngModelChange)="onTypeChange()"
             [nzDisabled]="isEditing"
             formControlName="type">
             <ng-container *ngFor="let at of actionTokenTypes">
@@ -75,14 +73,10 @@
         </nz-collapse>
       </div>
     </div>
+    <button *ngIf="!readonly" (click)="doSubmit()" nz-button class="submit-btn" [nzType]="'primary'" [nzLoading]="isLoading" i18n="@@common.save">Save</button>
   </ng-container>
   <ng-template #extra>
     <i (click)="onClose()" nz-icon nzType="icons:icon-close"></i>
-  </ng-template>
-  <ng-template #footer>
-    <div class="drawer-footer-btn">
-      <button (click)="doSubmit()" nz-button class="submit-btn" [nzType]="'primary'" [nzLoading]="isLoading" i18n="@@common.save">Save</button>
-    </div>
   </ng-template>
 </nz-drawer>
 

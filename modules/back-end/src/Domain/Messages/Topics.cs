@@ -1,10 +1,12 @@
 namespace Domain.Messages;
 
-public class Topics
+public static class Topics
 {
-    public const string EndUser = "evaluation-server-endusers";
+    public const string EndUser = "featbit-endusers";
 
-    public const string FeatureFlagChange = "api-feature-flag-change";
+    public const string FeatureFlagChange = "featbit-feature-flag-change";
 
-    public const string SegmentChange = "api-segment-change";
+    public const string SegmentChange = "featbit-segment-change";
+
+    public const string Insights = "featbit-insights";
 }

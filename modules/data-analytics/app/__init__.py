@@ -4,8 +4,9 @@ from logging.config import dictConfig
 from flask import Flask
 
 from app.config import DevelopmentConfig, ProductionConfig
-from app.extensions import get_scheduler, get_cache
-from app.setting import CACHE_KEY_PREFIX, CACHE_TYPE, DEFAULT_LOGGING_CONFIG, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT, WSGI
+from app.extensions import get_cache, get_mongodb, get_scheduler
+from app.setting import (CACHE_KEY_PREFIX, CACHE_TYPE, DEFAULT_LOGGING_CONFIG,
+                         IS_PRO, MONGO_URI, REDIS_URL, WSGI)
 
 CONFIGS = {
     'production': ProductionConfig,
@@ -33,16 +34,18 @@ def _create_app(config_name='default') -> Flask:
     # https://flask-caching.readthedocs.io/en/latest/
     cache = get_cache(config={"CACHE_TYPE": CACHE_TYPE,
                               "CACHE_KEY_PREFIX": CACHE_KEY_PREFIX,
-                              "CACHE_REDIS_HOST": REDIS_HOST,
-                              "CACHE_REDIS_PORT": REDIS_PORT,
-                              "CACHE_REDIS_PASSWORD": REDIS_PASSWORD})
+                              "CACHE_REDIS_URL": REDIS_URL})
     cache.init_app(__app)
 
-    if WSGI:
-        _init_aps_scheduler(__app)
-
-    from app.commands import migrate_clickhouse
-    __app.cli.add_command(migrate_clickhouse, name='migrate-clickhouse')
+    if IS_PRO:
+        if WSGI:
+            _init_aps_scheduler(__app)
+        from app.commands import migrate_clickhouse
+        __app.cli.add_command(migrate_clickhouse, name='migrate-database')
+    else:
+        get_mongodb(__app, MONGO_URI)
+        from app.commands import migrate_mongodb
+        __app.cli.add_command(migrate_mongodb, name='migrate-database')
 
     return __app
 
@@ -64,4 +67,4 @@ def _init_aps_scheduler(flask: Flask) -> None:
 def get_app(config_name='default') -> Flask:
     if __app is None:
         _create_app(config_name)
-    return __app
+    return __app  # type: ignore

@@ -1,47 +1,38 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output} from "@angular/core";
-import {ActivatedRoute} from "@angular/router";
-import {Subject} from "rxjs";
-import {OrganizationService} from "@services/organization.service";
-import {IOrganization} from "@shared/types";
-
-
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { IOrganization } from "@shared/types";
+import { getCurrentOrganization } from "@utils/project-env";
 
 @Component({
   selector: 'onboarding-complete',
   templateUrl: './complete.component.html',
   styleUrls: ['./complete.component.less']
 })
-export class CompleteComponent implements OnInit, OnDestroy {
-  private destroy$: Subject<void> = new Subject();
-
-  @Output()
-  close: EventEmitter<any> = new EventEmitter();
-
-  public isVisible: boolean = false;
-  public currentOrg: IOrganization;
+export class CompleteComponent implements OnInit {
+  isVisible: boolean = false;
+  currentOrg: IOrganization;
 
   constructor(
-    private route: ActivatedRoute,
-    private organizationService: OrganizationService
+    private router: Router,
+    private route: ActivatedRoute
   ) {
-    this.currentOrg = this.organizationService.getCurrentOrganizationProjectEnv().organization;
+    this.currentOrg = getCurrentOrganization();
   }
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(queryMap => {
-      if(queryMap.has('status')) {
+      if (queryMap.has('status')) {
         this.isVisible = queryMap.get('status') === 'init';
       }
     })
   }
 
-  onClose() {
+  close() {
     this.isVisible = false;
-    this.close.emit();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  getStarted() {
+    this.close();
+    this.router.navigateByUrl(`/get-started`);
   }
 }

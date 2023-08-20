@@ -3,6 +3,8 @@
 
 @import "../node_modules/ng-zorro-antd/code-editor/style/entry.less";
 
+@import "app/core/components/prism/prism.theme.less";
+
 // Override less variables to here
 // View all variables: https://github.com/NG-ZORRO/ng-zorro-antd/blob/master/components/style/themes/default.less
 
@@ -248,6 +250,7 @@ app-root {
     padding: 9px;
   }
 
+  // copy icon
   i.copy-icon {
     font-size: 20px;
     color: @grey40-color;
@@ -291,7 +294,7 @@ app-root {
   // textarea
   textarea {
     .standard-bordered-input;
-    height: 120px;
+    height: 80px;
   }
 }
 
@@ -569,7 +572,7 @@ app-root {
 .ant-descriptions-extra {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 // custom select dropdown and dropdown-menu
@@ -660,8 +663,7 @@ app-root {
   .ant-btn {
     .standard-btn;
 
-    // first button
-    &:first-child {
+    &:not(.ant-btn-primary) {
       color: @grey50-color;
       border-radius: 36px;
       border: 1px solid @grey40-color;
@@ -731,80 +733,70 @@ app-root {
 
 .variation-tip {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 10px;
-  margin-right: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 12px;
+  margin-right: 6px;
 }
 
 .tip-0 {
   color: #7fffd4;
   background: #7fffd4;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-1 {
   color: #1e90ff;
   background: #1e90ff;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-2 {
   color: #2fee7e;
   background: #2fee7e;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-3 {
   color: #ff1e44;
   background: #ff1e44;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-4 {
   color: #a9ff1e;
   background: #a9ff1e;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-5 {
   color: #a51eff;
   background: #a51eff;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-6 {
   color: #ff1e1eab;
   background: #ff1e1eab;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-7 {
   color: #ff8b1e;
   background: #ff8b1e;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-8 {
   color: #96ff1e;
   background: #96ff1e;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .tip-9 {
   color: #1effb493;
   background: #1effb493;
   transform: rotate(-45deg);
-  margin: 0 10px 0 2px;
 }
 
 .create-trigger .ant-select-selection-item {
@@ -976,7 +968,7 @@ app-root {
         justify-content: space-between;
         align-items: center;
         background: #f5f5f5;
-        border: 1px solid #f0f0f0;
+        border: 1px solid @grey0-color;
         border-radius: 2px;
         padding: 0 4px;
 
@@ -1013,6 +1005,7 @@ app-root {
   }
 }
 
+// env secrets popover style
 .env-secret-popover {
   white-space: nowrap;
   overflow: hidden;
@@ -1027,7 +1020,7 @@ app-root {
     padding: 10px 16px 4px;
     color: rgba(0, 0, 0, 0.85);
     font-weight: 600;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid @grey0-color;
   }
 
   .ant-popover-content {
@@ -1038,6 +1031,12 @@ app-root {
       border-radius: 10px;
       border: 2px solid #bfd0e321;
       box-shadow: 0 4px 12px 0 rgb(217 217 217 / 0%);
+
+      .ant-popover-inner-content {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
     }
 
     .env-secret-popover-content {
@@ -1101,6 +1100,15 @@ app-root {
   pointer-events: unset;
 }
 
+// custom nz-tag
+.ant-tag {
+  font-size: 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  padding: 2px 8px;
+  margin: 0 4px;
+}
+
 .drawer-footer-btn {
   display: flex;
   justify-content: flex-end;
@@ -1116,4 +1124,9 @@ app-root {
   &:hover {
     color: @green60-color;
   }
+}
+
+.creation-selection-item {
+  color: @primary-color;
+  font-weight: 600;
 }

@@ -3,7 +3,6 @@
         <div class="prefix">{{type}}</div>
         <div class="suffix">
             <span>{{selectedUserDetailList.length}} <ng-container i18n="@@common.num-users">user(s)</ng-container></span>
-            <!-- <i nz-icon nzType="more" nzTheme="outline"></i> -->
         </div>
     </div>
     <div class="selected-target-users" nz-row *ngIf="selectedUserDetailList.length">
@@ -32,9 +31,9 @@
           [nzValue]="item"
           [nzLabel]="item.name"
           [nzHide]="isSelected(item)">
-          <div class="user-selection-item">
+          <div class="user-selection-item" [class]="{'creation-selection-item': item.isNew}">
             <div class="title">
-              <ng-container *ngIf="item.isNew" i18n="@@common.new-user">Create user</ng-container> {{ item.name }}
+              <ng-container *ngIf="item.isNew" i18n="@@common.create-with-comma">Create:</ng-container> {{ item.name }}
             </div>
             <div class="digest">{{getUserDigest(item)}}</div>
           </div>

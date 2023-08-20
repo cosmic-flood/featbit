@@ -10,9 +10,13 @@ import { catchError } from "rxjs/operators";
 })
 export class EnvService {
   baseUrl = `${environment.url}/api/v1/projects/#projectId/envs`;
-  envs: IEnvironment[] = [];
 
   constructor(private http: HttpClient) { }
+
+  public getEnv(projectId: string, envId: string): Observable<IEnvironment> {
+    const url = this.baseUrl.replace(/#projectId/ig, `${projectId}`) + `/${envId}`;
+    return this.http.get<IEnvironment>(url);
+  }
 
   public getEnvs(projectId: string): Observable<IEnvironment[]> {
     const url = this.baseUrl.replace(/#projectId/ig, `${projectId}`);

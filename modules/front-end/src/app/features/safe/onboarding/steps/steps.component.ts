@@ -1,66 +1,73 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import {OrganizationService} from "@services/organization.service";
+import { OrganizationService } from "@services/organization.service";
+import { GET_STARTED } from "@utils/localstorage-keys";
+import { getCurrentOrganization } from "@utils/project-env";
+import { slugify } from "@utils/index";
 
 @Component({
   selector: 'init-steps',
   templateUrl: './steps.component.html',
   styleUrls: ['./steps.component.less']
 })
-export class StepsComponent implements OnDestroy {
+export class StepsComponent implements OnInit {
 
-  private destroy$: Subject<void> = new Subject();
   currentStep = 0;
   currentOrganizationId: string;
-  step0Form: FormGroup;
+  form: FormGroup;
 
   constructor(
     private router: Router,
     private organizationService: OrganizationService,
     private msg: NzMessageService,
     private fb: FormBuilder
-  ) {
+  ) { }
 
-    this.step0Form = this.fb.group({
+  ngOnInit() {
+    this.form = this.fb.group({
       organizationName: ['', [Validators.required]],
-      projectName: ['', [Validators.required]]
+      projectName: ['', [Validators.required]],
+      projectKey: ['', Validators.required]
     });
 
-    this.organizationService.getCurrentOrganization().subscribe(() => {
-      const { organization } = this.organizationService.getCurrentOrganizationProjectEnv();
-      this.currentOrganizationId = organization.id;
-      this.step0Form.patchValue({
-        organizationName: organization.name
-      });
+    this.form.get('projectName').valueChanges.subscribe(value => {
+      this.form.get('projectKey').setValue(slugify(value));
     });
-  }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  pre(): void {
-    this.currentStep -= 1;
-  }
-
-  next(): void {
-    this.currentStep += 1;
+    const organization = getCurrentOrganization();
+    this.currentOrganizationId = organization.id;
+    this.form.patchValue({
+      organizationName: organization.name
+    });
   }
 
   done(): void {
-    const { organizationName, projectName } = this.step0Form.value;
-    const environments = ['Dev', 'Prod'];
+    const { organizationName, projectKey, projectName } = this.form.value;
+    const payload = {
+      organizationName,
+      projectName,
+      projectKey,
+      environments: ['Dev', 'Prod']
+    };
 
-    this.organizationService.onboarding({ organizationName, projectName, environments })
-    .subscribe(({ flagKeyName }) => {
-      this.organizationService.setOrganization({ id: this.currentOrganizationId, initialized: true, name: organizationName });
-      this.router.navigateByUrl(`/feature-flags?status=init`);
-    }, _ => {
-      this.msg.error($localize `:@@common.operation-failed-try-again:Operation failed, please try again`);
-    })
+    this.organizationService.onboarding(payload).subscribe({
+      next: () => {
+        this.organizationService.setOrganization({
+          id: this.currentOrganizationId,
+          initialized: true,
+          name: organizationName
+        });
+
+        if (!localStorage.getItem(GET_STARTED())) {
+          this.router.navigateByUrl('/get-started?status=init');
+          return;
+        }
+
+        this.router.navigateByUrl(`/feature-flags?status=init`);
+      },
+      error: () => this.msg.error($localize`:@@common.operation-failed-try-again:Operation failed, please try again`)
+    });
   }
 }

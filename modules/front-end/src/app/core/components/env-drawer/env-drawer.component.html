@@ -21,14 +21,13 @@
       <nz-form-item>
         <nz-form-label nzRequired i18n="@@common.name">Name</nz-form-label>
         <nz-form-control nzErrorTip="Environment name is mandatory!" i18n-nzErrorTip="@@org.project.envNameMandatory">
-          <input type="text" nz-input (ngModelChange)="nameChange($event)" formControlName="name" placeholder="Name"
-                 i18n-placeholder="@@common.name"/>
+          <input type="text" nz-input formControlName="name" placeholder="Name" i18n-placeholder="@@common.name"/>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label
           nzRequired
-          i18n-nzTooltipTitle="@@org.project.env-key-description"
+          i18n-nzTooltipTitle="@@common.key-input-description"
           nzTooltipTitle="We use the key to give you friendly URLs. Keys should only contain letters, numbers, ., _ or -.">
           Key
         </nz-form-label>

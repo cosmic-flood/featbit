@@ -13,7 +13,7 @@ export interface IUserType {
   id: string;
   name: string;
   keyId: string;
-  customizedProperties: [{name: string, value: string}];
+  customizedProperties?: [{name: string, value: string}];
 
   isNew?: boolean; // only for front end
 }
@@ -52,14 +52,17 @@ export interface IOrganization {
   name: string
 }
 
-export interface IOrganizationProjectEnv {
-  organization: IOrganization,
-  projectEnv: IProjectEnv
+export interface IOnboarding {
+  organizationName: string,
+  projectName: string,
+  projectKey: string,
+  environments: string[]
 }
 
 export interface IProjectEnv {
   projectId: string,
   projectName: string,
+  projectKey: string,
   envId: string,
   envKey: string,
   envName: string,
@@ -69,6 +72,7 @@ export interface IProjectEnv {
 export interface IProject {
   id: string,
   name: string,
+  key: string,
   environments: IEnvironment[]
 }
 

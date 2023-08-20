@@ -87,6 +87,96 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "MichaelYuhe",
+      "name": "夏宇航",
+      "avatar_url": "https://avatars.githubusercontent.com/u/63531512?v=4",
+      "profile": "https://michaelyuhe.zeabur.app/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Exilon24",
+      "name": "Exilon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80382462?v=4",
+      "profile": "http://linktr.ee/exilon",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "fMoro1999",
+      "name": "Francesco Moro",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49589241?v=4",
+      "profile": "https://github.com/fMoro1999",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "wss-rbrennan",
+      "name": "rbrennan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128187904?v=4",
+      "profile": "http://webstaurantstore.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mucoban",
+      "name": "Mücahit Çoban",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80916997?v=4",
+      "profile": "https://github.com/mucoban",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Shubh8899",
+      "name": "Shubham Chauhan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/63413220?v=4",
+      "profile": "https://github.com/Shubh8899",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "defqd",
+      "name": "defqd",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104916752?v=4",
+      "profile": "https://github.com/defqd",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "benirave",
+      "name": "Bence Eros",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23312114?v=4",
+      "profile": "https://github.com/benirave",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "LeeBingler",
+      "name": "Bingler Lee",
+      "avatar_url": "https://avatars.githubusercontent.com/u/98109693?v=4",
+      "profile": "https://github.com/LeeBingler",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Erik247ts",
+      "name": "Erik247ts",
+      "avatar_url": "https://avatars.githubusercontent.com/u/141305198?v=4",
+      "profile": "https://github.com/Erik247ts",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -94,5 +184,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "projectName": "featbit",
-  "projectOwner": "featbit"
+  "projectOwner": "featbit",
+  "commitType": "docs"
 }

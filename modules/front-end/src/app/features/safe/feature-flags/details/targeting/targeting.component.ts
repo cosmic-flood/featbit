@@ -1,9 +1,8 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { IOrganization, IProjectEnv, IRuleIdDispatchKey } from '@shared/types';
+import { IRuleIdDispatchKey } from '@shared/types';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { CURRENT_ORGANIZATION, CURRENT_PROJECT } from "@utils/localstorage-keys";
 import { EnvUserService } from '@services/env-user.service';
 import { IUserProp, IUserType } from '@shared/types';
 import { MessageQueueService } from '@services/message-queue.service';
@@ -17,7 +16,6 @@ import { isSegmentCondition, isSingleOperator, uuidv4 } from "@utils/index";
 import { SegmentService } from "@services/segment.service";
 import {RefTypeEnum} from "@core/components/audit-log/types";
 import {ISegment} from "@features/safe/segments/types/segments-index";
-import { DefaultDispatchKey } from "@shared/diff/types";
 
 enum FlagValidationErrorKindEnum {
   fallthrough = 0,
@@ -47,9 +45,6 @@ export class TargetingComponent implements OnInit {
   public key: string;
   public isLoading: boolean = true;
   public isTargetUsersActive: boolean = false;
-
-  currentAccount: IOrganization = null;
-  currentProjectEnv: IProjectEnv = null;
 
   exptRulesVisible = false;
 
@@ -106,7 +101,7 @@ export class TargetingComponent implements OnInit {
       this.segmentService.getByIds(segmentIdRefs).subscribe((segments) => {
         this.segmentIdRefs = segments;
         this.reviewModalVisible = true;
-      }, (err) => this.msg.error($localize `:@@common.operation-failed-try-again:Operation failed, please try again`));
+      }, _ => this.msg.error($localize `:@@common.operation-failed-try-again:Operation failed, please try again`));
     } else {
       this.reviewModalVisible = true;
     }
@@ -131,15 +126,25 @@ export class TargetingComponent implements OnInit {
     this.isLoading = true;
     this.route.paramMap.subscribe(paramMap => {
       this.key = decodeURIComponent(paramMap.get('key'));
-      this.messageQueueService.subscribe(this.messageQueueService.topics.FLAG_SETTING_CHANGED(this.key), () => this.loadData());
+      this.messageQueueService.subscribe(this.messageQueueService.topics.FLAG_SETTING_CHANGED(this.key), () => this.refreshFeatureFlag());
       this.loadData();
     });
   }
 
-  async loadData() {
-    this.currentProjectEnv = JSON.parse(localStorage.getItem(CURRENT_PROJECT()));
-    this.currentAccount = JSON.parse(localStorage.getItem(CURRENT_ORGANIZATION()));
+  private async refreshFeatureFlag() {
+    this.featureFlagService.getByKey(this.key).subscribe({
+      next: (result: IFeatureFlag) => {
+        this.featureFlag.variations = [...result.variations];
+        this.featureFlag.originalData.variations = [...result.variations];
+        this.featureFlag.variations.forEach(v => {
+          this.targetingUsersByVariation[v.id] = this.targetingUsersByVariation[v.id] ?? [];
+        });
+      },
+      error: (err) => console.log('Error', err)
+    })
+  }
 
+  async loadData() {
     await Promise.all([this.loadUserPropsData(), this.loadFeatureFlag()]);
     this.isLoading = false;
   }
@@ -177,8 +182,6 @@ export class TargetingComponent implements OnInit {
 
           resolve(null);
         }
-
-        this.featureFlagService.setCurrentFeatureFlag(this.featureFlag);
       }, () => {
         resolve(null);
       })
@@ -187,22 +190,25 @@ export class TargetingComponent implements OnInit {
 
   private loadUserPropsData() {
     return new Promise((resolve) => {
-      this.envUserPropService.get().subscribe((result) => {
-        if (result) {
-          this.userProps = [USER_IS_IN_SEGMENT_USER_PROP, USER_IS_NOT_IN_SEGMENT_USER_PROP, ...result];
+      this.envUserPropService.get().subscribe({
+        next: (result) => {
+          if (result) {
+            this.userProps = [USER_IS_IN_SEGMENT_USER_PROP, USER_IS_NOT_IN_SEGMENT_USER_PROP, ...result];
 
-          this.onSearchUser();
+            this.onSearchUser();
 
+            resolve(null);
+          }
+        },
+        error: _ => {
+          this.msg.error($localize`:@@common.loading-failed-try-again:Loading failed, please try again`);
           resolve(null);
         }
-      }, _ => {
-        this.msg.error($localize `:@@common.loading-failed-try-again:Loading failed, please try again`);
-        resolve(null);
-      })
+      });
     });
   }
 
-  public onSearchUser(filter: EnvUserFilter = new EnvUserFilter()) {
+  onSearchUser(filter: EnvUserFilter = new EnvUserFilter()) {
     this.envUserService.search(filter).subscribe(pagedResult => {
       this.userList = [...pagedResult.items];
     })

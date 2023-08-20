@@ -1,5 +1,7 @@
 using Api.Middlewares;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Serilog;
+using Serilog.Events;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using OpenApiConstants = Api.Authentication.OpenApiConstants;
 
@@ -16,10 +18,12 @@ public static class MiddlewaresRegister
         // external use
         app.MapHealthChecks("health/liveness", new HealthCheckOptions { Predicate = _ => false });
 
-        // enable swagger in development environment
+        // enable swagger
+        app.UseSwagger();
+
+        // enable swagger UI in development environment
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
                 options.EnableFilter();
@@ -51,6 +55,27 @@ public static class MiddlewaresRegister
 
         // enable cors
         app.UseCors();
+
+        // serilog request logging
+        app.UseSerilogRequestLogging(options =>
+        {
+            options.IncludeQueryInRequestPath = true;
+            options.GetLevel = (ctx, _, ex) =>
+            {
+                if (ex != null || ctx.Response.StatusCode > 499)
+                {
+                    return LogEventLevel.Error;
+                }
+
+                // ignore health check endpoints
+                if (ctx.Request.Path.StartsWithSegments("/health"))
+                {
+                    return LogEventLevel.Debug;
+                }
+
+                return LogEventLevel.Information;
+            };
+        });
 
         // authentication & authorization
         app.UseAuthentication();

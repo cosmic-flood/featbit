@@ -25,11 +25,7 @@ public static class ErrorCodes
     // common
     public const string NameIsRequired = nameof(NameIsRequired);
     public const string KeyIsRequired = nameof(KeyIsRequired);
-
-    // onboarding
-    public const string OrganizationNameRequired = nameof(OrganizationNameRequired);
-    public const string ProjectNameRequired = nameof(ProjectNameRequired);
-    public const string EnvironmentsRequired = nameof(EnvironmentsRequired);
+    public const string KeyHasBeenUsed = nameof(KeyHasBeenUsed);
 
     // policy
     public const string CannotModifySysManagedPolicy = nameof(CannotModifySysManagedPolicy);
@@ -71,4 +67,11 @@ public static class ErrorCodes
     // access tokens
     public const string InvalidAccessTokenType = nameof(InvalidAccessTokenType);
     public const string ServiceAccessTokenMustDefinePolicies = nameof(ServiceAccessTokenMustDefinePolicies);
+
+    // relay proxies
+    public const string InvalidRelayProxyScope = nameof(InvalidRelayProxyScope);
+    public const string InvalidRelayProxyAgent = nameof(InvalidRelayProxyAgent);
+
+    public static string Required(string parameterName) => $"{parameterName}_is_required";
+    public static string Invalid(string parameterName) => $"{parameterName}_is_invalid";
 }

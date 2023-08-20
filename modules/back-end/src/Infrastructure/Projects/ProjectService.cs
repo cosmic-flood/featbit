@@ -26,6 +26,7 @@ public class ProjectService : MongoDbService<Project>, IProjectService
             {
                 Id = project.Id,
                 Name = project.Name,
+                Key = project.Key,
                 Environments = allEnvs
             };
 
@@ -47,6 +48,7 @@ public class ProjectService : MongoDbService<Project>, IProjectService
             {
                 Id = project.Id,
                 Name = project.Name,
+                Key = project.Key,
                 Environments = allEnvs
             };
 
@@ -68,8 +70,17 @@ public class ProjectService : MongoDbService<Project>, IProjectService
         {
             Id = project.Id,
             Name = project.Name,
+            Key = project.Key,
             Environments = envs
         };
+    }
+
+    public async Task<bool> HasKeyBeenUsedAsync(Guid organizationId, string key)
+    {
+        return await Queryable.AnyAsync(project =>
+            project.OrganizationId == organizationId &&
+            string.Equals(project.Key, key, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     public async Task<bool> DeleteAsync(Guid id)

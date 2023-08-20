@@ -9,10 +9,12 @@ using Domain.Members;
 using Domain.Organizations;
 using Domain.Policies;
 using Domain.Projects;
+using Domain.RelayProxies;
 using Domain.Segments;
 using Domain.Triggers;
 using Domain.Users;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Environment = Domain.Environments.Environment;
@@ -60,8 +62,10 @@ public class MongoDbClient
 
         { typeof(Experiment), "Experiments" },
         { typeof(ExperimentMetric), "ExperimentMetrics" },
-        
+
         { typeof(AccessToken), "AccessTokens" },
+        
+        { typeof(RelayProxy), "RelayProxies" },
     };
 
     public IMongoCollection<TEntity> CollectionOf<TEntity>()
@@ -69,6 +73,11 @@ public class MongoDbClient
         var collectionName = CollectionNameOf<TEntity>();
         var collection = Database.GetCollection<TEntity>(collectionName);
         return collection;
+    }
+
+    public IMongoCollection<BsonDocument> CollectionOf(string collectionName)
+    {
+        return Database.GetCollection<BsonDocument>(collectionName);
     }
 
     public string CollectionNameOf<TEntity>()

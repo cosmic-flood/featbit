@@ -15,9 +15,9 @@ export class MessageQueueService {
     SEGMENT_TARGETING_CHANGED: (id: string) => `segment_targeting_changed:${id}`,
     POLICY_CHANGED: (key: string) => `policy_changed:${key}`,
     CURRENT_ORG_PROJECT_ENV_CHANGED: 'current_org_project_env_changed',
+    CURRENT_ENV_SECRETS_CHANGED: 'current_env_secrets_changed',
     PROJECT_LIST_CHANGED: 'project_list_changed',
     USER_PROFILE_CHANGED: 'user_profile_changed',
-    QUICK_START_GUIDE_ONCLICK: 'quick_start_guide_onclick'
   };
 
   public events: Events;

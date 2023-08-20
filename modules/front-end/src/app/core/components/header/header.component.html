@@ -7,38 +7,38 @@
 
   <div class="header-btns">
     <div class="header-btn feedback" (click)="openFeedbackModal()" i18n="@@common.feedback">Feedback</div>
-    <div class="header-btn" nzTooltipPlacement="bottom" nz-tooltip="Quick Start Guide" i18n-nz-tooltip="@@common.quick-start-guide" (click)="onQuickStartGuideClick()">
-      <span nz-icon nzType="read" nzTheme="outline"></span>
-    </div>
+    <a target="_blank" class="header-btn doc-btn" href="https://docs.featbit.co"><span nz-icon nzType="read" nzTheme="outline"></span></a>
     <div class="org-btns">
       <div class="header-info">
         <div class="org-proj-env">
-        <span [routerLink]="['/organizations']">
-          <i nz-icon nzType="icons:icon-org"></i>
-          {{currentOrganization?.name}}
-        </span>
-          <span (click)="envModalVisible=true">
-          <i nz-icon nzType="icons:icon-proj"></i>
-            {{currentProjectEnv?.projectName}}
-        </span>
-          <span (click)="envModalVisible=true" nz-popover i18n-nz-popover="@@common.env-secret" nzPopoverTitle="Environment Secret"
+          <span [routerLink]="['/organizations']">
+            <i nz-icon nzType="icons:icon-org"></i>
+            {{currentOrganization?.name}}
+          </span>
+            <span (click)="envModalVisible=true">
+            <i nz-icon nzType="icons:icon-proj"></i>
+              {{currentProjectEnv?.projectName}}
+          </span>
+          <span (click)="envModalVisible=true" nz-popover i18n-nz-popover="@@common.env-secret" nzPopoverTitle="Environment Secrets"
                 [nzPopoverContent]="environmentSecretContent"
                 style="background-color: transparent;"
                 nzPopoverOverlayClassName="env-secret-popover">
 
-          <i nz-icon nzType="icons:icon-env"></i>
+            <i nz-icon nzType="icons:icon-env"></i>
             {{currentProjectEnv?.envName}}
-
-            <ng-template #environmentSecretContent>
-            <div class="env-secret-popover-content" (click)="copyText($event, currentProjectEnv?.envSecret)">
-              <i class="copy-icon" nz-icon
-                 nzType="icons:icon-copy"></i>
-              {{currentProjectEnv?.envSecret}}
-            </div>
+          </span>
+          <ng-template #environmentSecretContent>
+            <ng-container *ngFor="let secret of env?.secrets">
+              <div class="env-secret-popover-content" (click)="copyText($event, secret.value)">
+                <i class="copy-icon" nz-icon nzType="icons:icon-copy"></i>
+                <span>{{secret.name}}</span>
+                <nz-tag nzColor="geekblue" *ngIf="secret.type == SecretTypeEnum.Server" i18n="@@common.server">server</nz-tag>
+                <nz-tag nzColor="cyan" *ngIf="secret.type == SecretTypeEnum.Client" i18n="@@common.client">client</nz-tag>
+                <span>{{secret.value}}</span>
+              </div>
+            </ng-container>
           </ng-template>
-        </span>
         </div>
-
         <div class="switch" (click)="envModalVisible=true">
           <button class="switch-link-btn" nz-button nzType="link">
             <i nz-icon nzType="icons:icon-swap"></i>
@@ -52,13 +52,12 @@
 <nz-modal nzCentered nzWidth="792" [nzVisible]="envModalVisible" [nzFooter]="modalFooter"
   (nzOnCancel)="envModelCancel()" i18n-nzTitle="@@common.change-environment" nzTitle="Change environment">
   <ng-container *nzModalContent>
-    <message *ngIf="!canListProjects" [type]="'warning'" [content]="cannotReadProjectsMsg"></message>
-    <message *ngIf="!canListEnvs" [type]="'warning'" [content]="cannotReadEnvsMsg"></message>
     <div class="project-envs">
       <nz-list class="overflow-y-list" style="--list-height: 320px" [nzHeader]="projectHeader">
         <nz-list-item [ngClass]="{'item-selected': selectedProject?.id === project.id}"
           *ngFor="let project of availableProjects" (click)="onSelectProject(project)">
-          {{ project.name }} <nz-tag nzColor="green" *ngIf="isCurrentProject(project)" i18n="@@common.current">Current</nz-tag>
+           {{ project.name }}
+          <nz-tag nzColor="green" *ngIf="isCurrentProject(project)" i18n="@@common.current">Current</nz-tag>
         </nz-list-item>
         <ng-template #projectHeader>
           <span class="header" i18n="@@common.projects">Projects</span>

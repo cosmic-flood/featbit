@@ -121,14 +121,23 @@ db.Policies.insertOne(
             },
             {
                 _id: getUUIDString(),
+                resourceType: "relay-proxy",
+                effect: "allow",
+                actions: [
+                    "ManageRelayProxies",
+                    "ListRelayProxies"
+                ],
+                resources: ["relay-proxy/*"]
+            },
+            {
+                _id: getUUIDString(),
                 resourceType: "project",
                 effect: "allow",
                 actions: [
-                    "ListProjects",
+                    "CanAccessProject",
                     "CreateProject",
                     "DeleteProject",
                     "UpdateProjectSettings",
-                    "ListEnvs",
                     "CreateEnv"
                 ],
                 resources: ["project/*"]
@@ -138,7 +147,6 @@ db.Policies.insertOne(
                 resourceType: "env",
                 effect: "allow",
                 actions: [
-                    "AccessEnvs",
                     "DeleteEnv",
                     "UpdateEnvSettings",
                     "CreateEnvSecret",
@@ -173,22 +181,22 @@ db.Policies.insertOne(
             },
             {
                 _id: getUUIDString(),
-                resourceType: "project",
+                resourceType: "relay-proxy",
                 effect: "allow",
                 actions: [
-                    "ListProjects",
-                    "ListEnvs"
+                    "ManageRelayProxies",
+                    "ListRelayProxies"
                 ],
-                resources: ["project/*"]
+                resources: ["relay-proxy/*"]
             },
             {
                 _id: getUUIDString(),
-                resourceType: "env",
+                resourceType: "project",
                 effect: "allow",
                 actions: [
-                    "AccessEnvs"
+                    "CanAccessProject"
                 ],
-                resources: ["project/*:env/*"]
+                resources: ["project/*"]
             }
         ],
         createdAt: new Date(),

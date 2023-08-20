@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { getAuth } from '@utils/index';
@@ -11,7 +11,7 @@ import { IdentityService } from "@services/identity.service";
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.less']
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
 
   // profile form
   profileForm!: FormGroup;
@@ -39,7 +39,9 @@ export class ProfileComponent {
     private identityService: IdentityService,
     private message: NzMessageService,
     private fb: FormBuilder
-  ) {
+  ) {}
+
+  ngOnInit(): void {
     this.profileForm = this.fb.group({
       email: [this.auth.email, [Validators.required, Validators.email]],
       name: [this.auth.name]
@@ -49,6 +51,10 @@ export class ProfileComponent {
       currentPassword: ['', [Validators.required]],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [this.confirmValidator]]
+    });
+
+    this.resetPasswordForm.get('newPassword').valueChanges.subscribe(() => {
+      this.validateConfirmPassword();
     });
   }
 
@@ -89,18 +95,24 @@ export class ProfileComponent {
 
     const { currentPassword, confirmPassword } = this.resetPasswordForm.value;
     this.isResettingPassword = true;
-    this.identityService.resetPassword(currentPassword, confirmPassword).subscribe(resetResult => {
-      if (resetResult.success) {
-        this.message.success($localize`:@@org.profile.reset-password-success:Reset password success`);
-        this.resetPasswordForm.reset();
-      } else {
-        let message = $localize`:@@org.profile.reset-password-failed:Reset password failed, reason: [reason].`
-          .replace("[reason]", resetResult.reason);
+    this.identityService.resetPassword(currentPassword, confirmPassword).subscribe({
+      next: (resetResult) => {
+        if (resetResult.success) {
+          this.message.success($localize`:@@org.profile.reset-password-success:Reset password success`);
+          this.resetPasswordForm.reset();
+        } else {
+          let message = $localize`:@@org.profile.reset-password-failed:Reset password failed, reason: [reason].`
+            .replace("[reason]", resetResult.reason);
 
-        this.message.warning(message);
+          this.message.warning(message);
+        }
+
+        this.isResettingPassword = false;
+      },
+      error: () => {
+        this.message.error($localize`:@@common.operation-failed:Operation failed`);
+        this.isResettingPassword = false;
       }
-
-      this.isResettingPassword = false;
     });
   }
 }

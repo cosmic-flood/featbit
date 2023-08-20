@@ -14,7 +14,7 @@
         </button>
         <button nz-button nzType="primary" class="save-btn" (click)="onReviewChanges(validationErrorTpl)">
           <i nz-icon nzType="icons:icon-save"></i>
-          <ng-container i18n="@@common.review-and-save">Review and save</ng-container>
+          <ng-container i18n="@@common.save">Save</ng-container>
         </button>
       </div>
     </div>
@@ -22,7 +22,7 @@
     <div class="content-container">
       <div class="standard-div" *ngIf="!isLoading; else loadingTem;">
         <div class="rule-banner">
-          <div class="title" i18n="@@ff.components.details.targeting.default">Default</div>
+          <div class="title" i18n="@@ff.targeting.default">Default</div>
           <i [nz-tooltip]="defaultTooltip" nz-icon nzType="icons:icon-info-outline">
             <ng-template #defaultTooltip>
               <ng-container i18n="@@ff.components.details.targeting.default-tooltip">Serve a variation if the user doesn't met Individual targeting or Targeting Rules.</ng-container>
@@ -62,7 +62,7 @@
         <div *ngIf="isTargetUsersActive" style="margin-left: -12px;margin-top: 16px">
           <div class="content" *ngFor="let variation of featureFlag.variations; let i = index">
             <target-user
-              [type]="variation.value"
+              [type]="variation.name"
               [tipIdx]="i"
               [userList]="userList"
               [selectedUserDetailList]="targetingUsersByVariation[variation.id]"

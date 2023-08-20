@@ -1,5 +1,5 @@
 using Confluent.Kafka;
-using Domain.Core;
+using Domain.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,12 +10,12 @@ public partial class KafkaMessageConsumer : BackgroundService
 {
     private readonly ILogger<KafkaMessageConsumer> _logger;
     private readonly IConsumer<Null, string> _consumer;
-    private readonly IEnumerable<IMqMessageHandler> _messageHandlers;
+    private readonly IEnumerable<IMessageConsumer> _messageHandlers;
 
     public KafkaMessageConsumer(
         IConfiguration configuration,
         ILogger<KafkaMessageConsumer> logger,
-        IEnumerable<IMqMessageHandler> messageHandlers)
+        IEnumerable<IMessageConsumer> messageHandlers)
     {
         _logger = logger;
         _messageHandlers = messageHandlers;
@@ -52,6 +52,10 @@ public partial class KafkaMessageConsumer : BackgroundService
         var topics = new[] { Topics.FeatureFlagChange, Topics.SegmentChange };
 
         _consumer.Subscribe(topics);
+        _logger.LogInformation(
+            "Start consuming flag & segment change messages through topics: {Topics}.",
+            string.Join(',', topics)
+        );
 
         ConsumeResult<Null, string>? consumeResult = null;
         var message = string.Empty;
